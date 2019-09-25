@@ -1,0 +1,163 @@
+---
+title: "V4pro"
+author: "Devon Birdseye"
+date: "9/20/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(VennDiagram)
+library(tidyr)
+library(dplyr)
+library(plyr)
+```
+
+```{r}
+df <- read.csv("V2-V4-NCBI-UniProt comparison 091619.csv", stringsAsFactors = F)
+```
+```{r}
+df$ID <- 1:nrow(df)
+```
+```{r}
+nrow(df)
+```
+```{r}
+V4_IDs <- df$ID[(grep("Zm00", df$Accessions))]
+length(V4_IDs)
+```
+```{r}
+V2_IDs <- df$ID[(grep("GRMZM", df$Accessions))]
+length(V2_IDs)
+```
+```{r}
+Uniprot_IDs <- df$ID[(grep("A0", df$Accessions))]
+length(Uniprot_IDs)
+```
+```{r}
+NCBI_IDs <- df$ID[(grep("P_", df$Accessions))]
+length(NCBI_IDs)
+```
+```{r}
+length(unique(c(V4_IDs,V2_IDs,Uniprot_IDs,NCBI_IDs)))
+```
+```{r}
+missings <- df$ID[!df$ID%in%(unique(c(V4_IDs,V2_IDs,Uniprot_IDs,NCBI_IDs)))]
+```
+```{r}
+df_missings <- df[missings,c(6,8)]
+```
+```{r}
+df_missings_uniprot <- df_missings[c(1:11,26:43,46:57,59:60),]
+```
+```{r}
+df_missings_ncbi <- df_missings[c(12:25,73),]
+```
+```{r}
+df_missings_v2 <- df_missings[c(44:45,58,61:72,74:75),]
+```
+```{r}
+sum(c(nrow(df_missings_uniprot),nrow(df_missings_ncbi),nrow(df_missings_v2)))==nrow(df_missings)
+```
+```{r}
+V2_IDs <- c(V2_IDs, df_missings_v2$ID)
+```
+```{r}
+length(V2_IDs)
+```
+
+```{r}
+Uniprot_IDs <- c(Uniprot_IDs, df_missings_uniprot$ID)
+```
+```{r}
+length(Uniprot_IDs)
+```
+
+```{r}
+NCBI_IDs <- c(NCBI_IDs, df_missings_ncbi$ID)
+```
+```{r}
+length(NCBI_IDs)
+```
+
+```{r}
+length(unique(c(V4_IDs,V2_IDs,Uniprot_IDs,NCBI_IDs)))==nrow(df)
+```
+
+```{r}
+venn.diagram(x=list(V2=V2_IDs, V4=V4_IDs, NCBI=NCBI_IDs, Uniprot=Uniprot_IDs),
+             fill=c("dodgerblue", "goldenrod1", "darkorange1", "seagreen3"),
+             filename = "PeptideVen.png")
+```
+
+
+```{r}
+V4_groups <- unique(df$Group[V4_IDs])
+V2_groups <- unique(df$Group[V2_IDs])
+NCBI_groups <- unique(df$Group[NCBI_IDs])
+Uniprot_groups <- unique(df$Group[Uniprot_IDs])
+```
+```{r}
+venn.diagram(x=list(V2=V4_groups, V4=V4_groups, NCBI=NCBI_groups, Uniprot=Uniprot_groups),
+             fill=c("dodgerblue", "goldenrod1", "darkorange1", "seagreen3"),
+             filename = "ProteinVen.png")
+```
+```{r}
+length(V4_groups)
+length(NCBI_groups)
+length(V2_groups)
+length(Uniprot_groups)
+```
+
+```{r}
+SepFun <- function(df){
+  separate_rows(df, Accessions, sep = "\\|")
+}
+```
+
+```{r}
+SplitFun <- function(x){
+  split(x, x$Accessions)
+}
+```
+
+```{r}
+SumFun <- function(x){
+  sum(x$Score)
+}
+```
+```{r}
+df_split <- split(df, df$Group)
+```
+
+```{r}
+df_split_sep <- lapply(df_split, SepFun)
+```
+
+```{r}
+df_split_sep_split <- lapply(df_split_sep, SplitFun)
+```
+
+```{r}
+nested_lapply <- function(data, fun) {
+    lapply(data, function(sublist) { lapply(sublist, fun) })
+}
+```
+```{r}
+df_split_sep_split_sum <-nested_lapply(df_split_sep_split, SumFun)
+```
+```{r}
+saveRDS(df_split_sep_split_sum, file = "df_split_sep_split_sum")
+```
+```{r}
+df_split_sep_split_sum <- readRDS("df_split_sep_split_sum")
+```
+
+```{r}
+#df_split_sep_split_sum_df <- as.data.frame(t(rbind.fill(lapply(df_split_sep_split_sum, as.data.frame))))
+```
+
+
+
