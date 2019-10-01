@@ -7,12 +7,15 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+set.seed(586)
 ```
 ```{r}
 library(VennDiagram)
 library(tidyr)
 library(dplyr)
 library(plyr)
+library(ff)
+library(data.table)
 ```
 
 ```{r}
@@ -152,12 +155,53 @@ df_split_sep_split_sum <-nested_lapply(df_split_sep_split, SumFun)
 saveRDS(df_split_sep_split_sum, file = "df_split_sep_split_sum")
 ```
 ```{r}
-df_split_sep_split_sum <- readRDS("df_split_sep_split_sum")
+df_split_sep_split_sum.2 <- readRDS("df_split_sep_split_sum")
+```
+```{r}
+###Not enough memory to run:
+#df_split_sep_split_sum_df <- t(rbind.fill(lapply(df_split_sep_split_sum.2, as.data.table, keep.rownames=T)))
 ```
 
 ```{r}
-#df_split_sep_split_sum_df <- as.data.frame(t(rbind.fill(lapply(df_split_sep_split_sum, as.data.frame))))
+test <- df_split_sep_split_sum.2[1000:1010]
 ```
+```{r}
+test2 <- (t(rbind.fill(lapply(test, as.data.table, keep.rownames=T))))
+```
+```{r}
+write.csv(test2, "test2.csv")
+```
+
+
+```{r}
+SplitIntoAccessionDFsfun <- function(x){
+test2 <- data.frame(unique(x$Accessions))
+test3 <- as.data.frame(t(test2))
+rownames(test3)<- paste0("Group",(x[1,3]))
+test3
+}
+```
+
+```{r}
+df_split_sep_AccDFs <- lapply(df_split_sep, SplitIntoAccessionDFsfun)
+```
+```{r}
+df_split_sep_AccDFs_rbind <- t(rbind.fill(lapply(df_split_sep_AccDFs, as.data.table, keep.rownames=T)))
+```
+```{r}
+saveRDS(df_split_sep_AccDFs_rbind, "df_split_sep_AccDFs_rbind")
+```
+```{r}
+df_split_sep_AccDFs_rbind <- readRDS("df_split_sep_AccDFs_rbind")
+```
+```{r}
+ncol(df_split_sep_AccDFs_rbind)
+```
+```{r}
+write.csv(df_split_sep_AccDFs_rbind, "df_split_sep_AccDFs_rbind.csv")
+```
+
+
 
 
 
