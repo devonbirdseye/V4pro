@@ -23,6 +23,7 @@ df <- read.csv("V2-V4-NCBI-UniProt comparison 091619.csv", stringsAsFactors = F)
 #Make ID column
 df$ID <- 1:nrow(df)
 ```
+
 ```{r Define each database accession}
 V4_IDs <- df$ID[(grep("Zm00", df$Accessions))]
 length(V4_IDs)
@@ -36,7 +37,7 @@ length(Uniprot_IDs)
 NCBI_IDs <- df$ID[(grep("P_", df$Accessions))]
 length(NCBI_IDs)
 
-#Identify Peptides that were missed in definitions above}
+#Identify Peptides that were missed in definitions above manually
 missings <- df$ID[!df$ID%in%(unique(c(V4_IDs,V2_IDs,Uniprot_IDs,NCBI_IDs)))]
 
 df_missings <- df[missings,c(6,8)]
@@ -59,7 +60,6 @@ NCBI_IDs <- c(NCBI_IDs, df_missings_ncbi$ID)
 #Check that every peptide is now accounted for
 length(unique(c(V4_IDs,V2_IDs,Uniprot_IDs,NCBI_IDs)))==nrow(df)
 ```
-
 
 ```{r Venn Diagram of Peptide distrubution across databases}
 venn.diagram(x=list(V2=V2_IDs, V4=V4_IDs, NCBI=NCBI_IDs, Uniprot=Uniprot_IDs),
@@ -127,6 +127,13 @@ ProtDF_V2 <- rbind(ProtDF_V2, ProtDF_missings[c(20,21,24:40),])
 length(unique(c(ProtDF_V4$Group, ProtDF_V2$Group, ProtDF_NCBI$Group, ProtDF_Uniprot$Group)))==length(unique(ProtDF$Group))
 ```
 
+```{r}
+length(unique(ProtDF_V4$Group))
+length(unique(ProtDF_V2$Group))
+length(unique(ProtDF_NCBI$Group))
+length(unique(ProtDF_Uniprot$Group))
+```
+
 ```{r Analysis at the PROTEIN level}
 #Define Proteins (i.e. Groups)
 V4_groups <- unique(ProtDF_V4$Group)
@@ -136,7 +143,7 @@ Uniprot_groups <- unique(ProtDF_Uniprot$Group)
 ```
 ```{r Venn Diagram of Protein distrubution across databases}
 venn.diagram(x=list(V2=V2_groups, V4=V4_groups, NCBI=NCBI_groups, Uniprot=Uniprot_groups),
-             fill=c("dodgerblue", "goldenrod1", "darkorange1", "seagreen3"),
+             fill=c("#D55E00", "#0072B2", "#009E73", "#F0E442"),
              filename = "ProteinVen.png")
 ```
 
@@ -209,13 +216,8 @@ nopeptidegroups <- proteingroups[!(proteingroups%in%peptidegroups)]
 ```{r}
 ProtDF_NoPeptide <- ProtDF[(ProtDF$Group %in% nopeptidegroups),]
 ```
-
 ```{r}
 ProtDF_NoPeptide[(order(ProtDF_NoPeptide$Group, -ProtDF_NoPeptide$Score)),]
-```
-
-```{r}
-V4proDF
 ```
 
 
